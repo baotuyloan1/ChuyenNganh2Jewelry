@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:furniture_app/components/product_cart.dart';
 import 'package:furniture_app/config.dart';
 import 'package:furniture_app/constants.dart';
 import 'package:furniture_app/entity/cart.dart';
 import 'package:furniture_app/models/product_model.dart';
 import 'package:furniture_app/provider/init_provider.dart';
-import 'package:furniture_app/provider/quantity_detail_provider.dart';
 import 'package:furniture_app/screens/details/details_screen.dart';
 import 'package:furniture_app/size_config.dart';
 
@@ -18,33 +16,41 @@ class ProductGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView(
-        children: [
-          SizedBox(
-            height: getProportionateScreenWidth(15),
-          ),
-          Container(
-            width: SizeConfig.screenWidth - getProportionateScreenWidth(30),
-            height: SizeConfig.screenHeight - getProportionateScreenHeight(240),
-            child: GridView.count(
-              crossAxisCount: 2,
-              primary: false,
-              crossAxisSpacing: getProportionateScreenWidth(10),
-              mainAxisSpacing: getProportionateScreenWidth(15),
-              childAspectRatio: 0.8,
-              children: [
-                ...List.generate(products!.length, (index) {
-                  return _buildCard(products![index], context);
-                })
-              ],
+      body: MediaQuery.removePadding(
+        context: context,
+        removeTop: true,
+        removeBottom: true,
+        child: Column(
+          children: [
+            Flexible(
+              child: GridView.count(
+                crossAxisCount: 2,
+                primary: false,
+                crossAxisSpacing: getProportionateScreenWidth(10),
+                mainAxisSpacing: getProportionateScreenWidth(15),
+                childAspectRatio: 0.8,
+                children: [
+                  ...List.generate(products!.length, (index) {
+                    return _buildCard(products![index], context);
+                  })
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildCard(ProductModel productModel, BuildContext context) {
+    double price = double.parse(productModel.productPrice.toString());
+    if (productModel.discountModel.discountPercent! > 0 &&
+        productModel.discountModel.discountPercent! <= 100) {
+      price = (100 - productModel.discountModel.discountPercent!) /
+          100 *
+          double.parse(productModel.productPrice!);
+      price = double.parse((price).toStringAsFixed(2));
+    }
     return Padding(
       padding: EdgeInsets.only(
           left: getProportionateScreenWidth(10),
@@ -69,8 +75,8 @@ class ProductGrid extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       productModel.productStatus == 1
-                          ? Icon(Icons.favorite, color: kPrimaryColor)
-                          : Icon(
+                          ? const Icon(Icons.favorite, color: kPrimaryColor)
+                          : const Icon(
                               Icons.favorite_border,
                               color: kSecondaryColor,
                             )
@@ -100,19 +106,19 @@ class ProductGrid extends StatelessWidget {
                 ),
                 Text(
                   "\$${productModel.productPrice.toString()}",
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: kPrimaryColor,
                   ),
                 ),
                 Expanded(
                   flex: 10,
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: Text(
                       "${productModel.productName}",
                       maxLines: 2,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: kTextColor,
                       ),
                     ),
@@ -154,7 +160,7 @@ class ProductGrid extends StatelessWidget {
                                   productName: productModel.productName!,
                                   categoryProduct: productModel.categoryId!,
                                   imageUrl: productModel.productImage!,
-                                  price: productModel.productPrice!,
+                                  price: price,
                                   quantity: 1);
                               await context
                                   .read<InitProvider>()

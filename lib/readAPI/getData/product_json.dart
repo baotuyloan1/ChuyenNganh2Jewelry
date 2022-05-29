@@ -23,11 +23,11 @@ class GetProductAPI {
     return list;
   }
 
-  // Future<List<ProductModel>> getProductRecommender() async {
-  //   final response = await http.get(Uri.parse(getRecommenderProduct));
-  //   final list = ((json.decode(response.body)) as List<dynamic>)
-  //       .map((value) => ProductModel.fromJson(value))
-  //       .toList();
-  //   return list;
-  // }
+  Future<List<ProductModel>> getProductRecommender() async {
+    final response = await http.get(Uri.parse(getRecommenderProduct));
+    final list = ((json.decode(response.body)) as List<dynamic>)
+        .map((value) => ProductModel.fromJson(value))
+        .toList();
+    return list;
+  }
 }

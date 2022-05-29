@@ -1,10 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:furniture_app/components/custom_bottom_nav_bar.dart';
-import 'package:furniture_app/components/product_cart.dart';
 import 'package:furniture_app/constants.dart';
 import 'package:furniture_app/entity/cart.dart';
-import 'package:furniture_app/enums.dart';
 import 'package:furniture_app/models/category_model.dart';
 import 'package:furniture_app/models/product_model.dart';
 import 'package:furniture_app/provider/init_provider.dart';
@@ -13,7 +9,6 @@ import 'package:furniture_app/screens/category/components/product_grid.dart';
 import 'package:furniture_app/screens/home/components/icon_btn_with_counter.dart';
 import 'package:furniture_app/size_config.dart';
 
-import 'components/bottom_bar.dart';
 import 'package:http/http.dart' as http;
 import '../../../config.dart';
 import 'dart:async'; // cho load du lieu
@@ -32,7 +27,7 @@ class _CategoryScreenState extends State<CategoryScreen>
   Future<List<ProductModel>> getProductFromCategory(int categoryId) async {
     final response = await http.post(Uri.parse(getProductByCategoryId),
         body: {"categor_id": categoryId.toString()});
-  
+
     final list = ((json.decode(response.body)) as List<dynamic>)
         .map((value) => ProductModel.fromJson(value))
         .toList();
@@ -53,6 +48,7 @@ class _CategoryScreenState extends State<CategoryScreen>
     super.dispose();
   }
 
+  @override
   Widget build(BuildContext context) {
     final ProductsCategoryArguments agrs =
         ModalRoute.of(context)!.settings.arguments as ProductsCategoryArguments;
@@ -67,51 +63,52 @@ class _CategoryScreenState extends State<CategoryScreen>
     }
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        title: Column(
           children: [
-            Text(
-              "Category",
-              style: TextStyle(color: Colors.black),
-            ),
-            const Spacer(),
-            StreamBuilder(
-              stream: context
-                  .watch<InitProvider>()
-                  .cartDao
-                  .getAllItemInCartAllByUid("bao"),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  var list = snapshot.data as List<Cart>;
-                  return IconBtnWithCounter(
-                    svgSrc: "assets/icons/Cart Icon.svg",
-                    numOfItems: list.length > 0
-                        ? list
-                            .map<int>((e) => e.quantity)
-                            .reduce((value, element) => value + element)
-                        : 0,
-                    press: () => Navigator.pushNamed(
-                        context, CartScreen.routeName,
-                        arguments: list.length > 0
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  "Category",
+                  style: TextStyle(color: Colors.black),
+                ),
+                const Spacer(),
+                StreamBuilder(
+                  stream: context
+                      .watch<InitProvider>()
+                      .cartDao
+                      .getAllItemInCartAllByUid("bao"),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      var list = snapshot.data as List<Cart>;
+                      return IconBtnWithCounter(
+                        svgSrc: "assets/icons/Cart Icon.svg",
+                        numOfItems: list.isNotEmpty
                             ? list
                                 .map<int>((e) => e.quantity)
                                 .reduce((value, element) => value + element)
-                            : 0),
-                  );
-                }
-                return Text("x");
-              },
-            )
+                            : 0,
+                        press: () => Navigator.pushNamed(
+                            context, CartScreen.routeName,
+                            arguments: list.isNotEmpty
+                                ? list
+                                    .map<int>((e) => e.quantity)
+                                    .reduce((value, element) => value + element)
+                                : 0),
+                      );
+                    }
+                    return const Text("x");
+                  },
+                )
+              ],
+            ),
           ],
         ),
       ),
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: ListView(
-          padding: EdgeInsets.only(
-              left: getProportionateScreenWidth(10),
-              right: getProportionateScreenWidth(10)),
-          children: <Widget>[
+      body: Container(
+        child: Column(
+          children: [
             TabBar(
               onTap: (index) {},
               controller: _tabController,
@@ -126,7 +123,7 @@ class _CategoryScreenState extends State<CategoryScreen>
                   if (agrs.categories[index].categoryStatus == 1) {
                     return Tab(
                       child: Text(
-                        "${agrs.categories[index].categoryName!}",
+                        agrs.categories[index].categoryName!,
                         style: TextStyle(
                             fontSize: getProportionateScreenWidth(16)),
                       ),
@@ -140,10 +137,7 @@ class _CategoryScreenState extends State<CategoryScreen>
                 })
               ],
             ),
-            Container(
-              height:
-                  SizeConfig.screenHeight - getProportionateScreenWidth(100),
-              width: double.infinity,
+            Expanded(
               child: TabBarView(
                 controller: _tabController,
                 physics: const NeverScrollableScrollPhysics(),
@@ -165,19 +159,19 @@ class _CategoryScreenState extends State<CategoryScreen>
                   })
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: kPrimaryColor,
-        child: const Icon(Icons.category),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: CustomBottomNavBar(
-        selectedMenu: MenuState.category,
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {},
+      //   backgroundColor: kPrimaryColor,
+      //   child: const Icon(Icons.category),
+      // ),
+      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      // bottomNavigationBar: const CustomBottomNavBar(
+      //   selectedMenu: MenuState.category,
+      // ),
     );
   }
 }

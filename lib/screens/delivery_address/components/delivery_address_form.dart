@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:furniture_app/components/custom_suffix_icon.dart';
 import 'package:furniture_app/components/default_button.dart';
 import 'package:furniture_app/components/form_error.dart';
-import 'package:furniture_app/models/billing_model.dart';
 import 'package:furniture_app/provider/init_provider.dart';
 import 'package:furniture_app/readAPI/postData/post_billing.dart';
-import 'package:furniture_app/screens/checkout/checkout_screen.dart';
-import 'package:furniture_app/screens/complete_profile/complete_profile_screen.dart';
 
 import '../../../constants.dart';
 import '../../../size_config.dart';
@@ -43,7 +40,7 @@ class _DeliveryAddressForm extends State<DeliveryAddressForm> {
 
   @override
   Widget build(BuildContext context) {
-    int customer_id = context.watch<InitProvider>().accountModel.id!;
+    int customerId = context.watch<InitProvider>().accountModel.id!;
     return Form(
       key: _formKey,
       child: Column(
@@ -67,12 +64,12 @@ class _DeliveryAddressForm extends State<DeliveryAddressForm> {
                 if (_formKey.currentState!.validate()) {
                   _formKey.currentState!.save();
                   int statusPost = await PostBilling().postBilling(
-                      customer_id: customer_id.toString(),
+                      customer_id: customerId.toString(),
                       billing_name: name!,
                       billing_address: address!,
                       billing_phone: phone!);
                   if (statusPost == 1) {
-                    Navigator.pushNamed(context, CheckoutScreen.routeName);
+                    Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24),
@@ -100,7 +97,7 @@ class _DeliveryAddressForm extends State<DeliveryAddressForm> {
         if (value.isNotEmpty) {
           removeError(error: kPhoneNumberNullError);
         }
-        return null;
+        return;
       },
       validator: (value) {
         if (value!.isEmpty) {
@@ -158,7 +155,7 @@ class _DeliveryAddressForm extends State<DeliveryAddressForm> {
         if (value.isNotEmpty) {
           removeError(error: kAddressNullError);
         }
-        return null;
+        return;
       },
       validator: (value) {
         if (value!.isEmpty) {

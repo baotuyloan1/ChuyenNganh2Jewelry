@@ -6,7 +6,7 @@ class Cart {
   final int id;
 
   final int categoryProduct;
-  final int price;
+  final double price;
   final String uid, productName, imageUrl;
   int quantity;
 

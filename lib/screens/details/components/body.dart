@@ -26,6 +26,16 @@ class Body extends StatelessWidget {
       const Color(0xFFDECB9C),
       Colors.white,
     ];
+    double price = double.parse(productModel.productPrice.toString());
+    if (productModel.discountModel.discountPercent! > 0 &&
+        productModel.discountModel.discountPercent! <= 100) {
+      price = (100 - productModel.discountModel.discountPercent!) /
+          100 *
+          double.parse(productModel.productPrice!);
+      price = double.parse((price).toStringAsFixed(2));
+    } else {
+      price = double.parse((price).toStringAsFixed(2));
+    }
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -79,7 +89,7 @@ class Body extends StatelessWidget {
                                           categoryProduct:
                                               productModel.categoryId!,
                                           imageUrl: productModel.productImage!,
-                                          price: productModel.productPrice!,
+                                          price: price,
                                           quantity: context
                                               .read<QuantityDetailProvider>()
                                               .quantity);

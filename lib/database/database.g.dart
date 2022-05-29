@@ -82,7 +82,7 @@ class _$AppDatabase extends AppDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Cart` (`id` INTEGER NOT NULL, `categoryProduct` INTEGER NOT NULL, `price` INTEGER NOT NULL, `uid` TEXT NOT NULL, `productName` TEXT NOT NULL, `imageUrl` TEXT NOT NULL, `quantity` INTEGER NOT NULL, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `Cart` (`id` INTEGER NOT NULL, `categoryProduct` INTEGER NOT NULL, `price` REAL NOT NULL, `uid` TEXT NOT NULL, `productName` TEXT NOT NULL, `imageUrl` TEXT NOT NULL, `quantity` INTEGER NOT NULL, PRIMARY KEY (`id`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -162,7 +162,7 @@ class _$CartDAO extends CartDAO {
             productName: row['productName'] as String,
             categoryProduct: row['categoryProduct'] as int,
             imageUrl: row['imageUrl'] as String,
-            price: row['price'] as int,
+            price: row['price'] as double,
             quantity: row['quantity'] as int),
         arguments: [uid],
         queryableName: 'Cart',
@@ -178,7 +178,7 @@ class _$CartDAO extends CartDAO {
             productName: row['productName'] as String,
             categoryProduct: row['categoryProduct'] as int,
             imageUrl: row['imageUrl'] as String,
-            price: row['price'] as int,
+            price: row['price'] as double,
             quantity: row['quantity'] as int),
         arguments: [uid, id]);
   }
@@ -192,7 +192,7 @@ class _$CartDAO extends CartDAO {
             productName: row['productName'] as String,
             categoryProduct: row['categoryProduct'] as int,
             imageUrl: row['imageUrl'] as String,
-            price: row['price'] as int,
+            price: row['price'] as double,
             quantity: row['quantity'] as int),
         arguments: [uid]);
   }

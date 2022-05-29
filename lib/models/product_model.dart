@@ -8,7 +8,7 @@ class ProductModel {
   String? productDesc;
   String? productSpec;
   String? productImage;
-  int? productPrice;
+  String? productPrice;
   int? productStatus;
   List<dynamic>? productImages;
   List<Color>? colors;

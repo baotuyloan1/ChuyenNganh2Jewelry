@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -9,10 +10,11 @@ import 'package:furniture_app/constants.dart';
 import 'package:furniture_app/dao/cart_dao.dart';
 import 'package:furniture_app/entity/cart.dart';
 import 'package:furniture_app/enums.dart';
+import 'package:furniture_app/function/show_toast.dart';
 import 'package:furniture_app/models/billing_model.dart';
 import 'package:furniture_app/models/order_detail_model.dart';
 import 'package:furniture_app/provider/init_provider.dart';
-import 'package:furniture_app/readAPI/getData/get_infor_account.dart';
+import 'package:furniture_app/readAPI/postData/delete_billing.dart';
 import 'package:furniture_app/readAPI/postData/post_order.dart';
 import 'package:furniture_app/screens/checkout/components/payment_cost.dart';
 import 'package:furniture_app/screens/delivery_address/delivery_address_screen.dart';
@@ -32,10 +34,42 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   int? addressSelected;
   BillingModel? billingModelSelected;
-  String? _note;
+  String? _note = "";
   TextEditingController noteController = TextEditingController();
-
+  final bool _isShown = true;
   final _formKey = GlobalKey<FormState>();
+
+  late Future<List<BillingModel>> _futureBillings;
+  Future<List<BillingModel>> showBillings(String? cusID) async {
+    // final response = await http.post(Uri.parse(getBillingUrl), body: {
+    //   "customer_id": cusID.toString(),
+    // });
+    // if (response.statusCode == 200) {
+    //   final list = ((json.decode(response.body)) as List<dynamic>)
+    //       .map((value) => BillingModel.fromJson(value))
+    //       .toList();
+    //   return list;
+    // } else {
+    //   throw Exception('Failed to load album');
+    // }
+    final response =
+        await http.post(Uri.parse(getBillingUrl), body: {"customer_id": cusID});
+    final list = ((json.decode(response.body)) as List<dynamic>)
+        .map((value) => BillingModel.fromJson(value))
+        .toList();
+    return list;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+      final customerId =
+          Provider.of<InitProvider>(context, listen: false).accountModel.id;
+      _futureBillings = showBillings(customerId.toString());
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     int customerId = context.watch<InitProvider>().accountModel.id!;
@@ -51,15 +85,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         if (snapshot.hasData) {
           carts = snapshot.data as List<Cart>;
 
-          double deliveryCoast = carts.isNotEmpty
-              ? carts
-                      .map<double>((e) =>
-                          double.parse((e.price * e.quantity).toString()))
-                      .reduce((value, element) => value + element) *
-                  10 /
-                  100
-              : 0;
+          double deliveryCoast = carts.isNotEmpty ? (subTotal! * 10) / 100 : 0;
+          deliveryCoast = double.parse((deliveryCoast).toStringAsFixed(2));
           double total = deliveryCoast + subTotal!;
+          total = double.parse((total).toStringAsFixed(2));
           return Scaffold(
             appBar: AppBar(
               title: const Text(
@@ -81,8 +110,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           const Text("Delivery Address"),
                           TextButton(
                               onPressed: () {
-                                Navigator.pushNamed(
-                                    context, DeliveryAddressScreen.routeName);
+                                Navigator.pushNamed(context,
+                                        DeliveryAddressScreen.routeName)
+                                    .then(onGoBack);
                               },
                               child: const Text(
                                 "Add",
@@ -247,32 +277,39 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         child: DefaultButton(
                           text: "Send order",
                           press: () async {
-                            int idPayment = 3;
-                            int idOrder = await PostOrder().postOrder(
-                                billing_id:
-                                    billingModelSelected!.id!.toString(),
-                                customer_id: customerId.toString(),
-                                order_total: total.toString(),
-                                payment_id: idPayment.toString(),
-                                order_note: _note!);
-                            List<OrderDetailModel> orderDetails = carts
-                                .map((e) => OrderDetailModel(
-                                    productId: e.id.toString(),
-                                    productName: e.productName,
-                                    orderId: idOrder.toString(),
-                                    quantity: e.quantity,
-                                    productPrice: e.price.toDouble()))
-                                .toList();
-                            var body = json.encode(orderDetails);
-                            var response = await http.post(
-                                Uri.parse(postOrderDetaillUrl),
-                                body: body);
-                            if (response.body == "1") {
-                              cartDAORead.clearCartByUid("bao");
-                              Navigator.pushNamed(
-                                  context, HomeScreen.routeName);
+                            if (billingModelSelected != null) {
+                              int idPayment = 3;
+                              int idOrder = await PostOrder().postOrder(
+                                  billing_id:
+                                      billingModelSelected!.id!.toString(),
+                                  customer_id: customerId.toString(),
+                                  order_total: total.toString(),
+                                  payment_id: idPayment.toString(),
+                                  order_note: _note!);
+                              List<OrderDetailModel> orderDetails = carts
+                                  .map((e) => OrderDetailModel(
+                                      productId: e.id.toString(),
+                                      productName: e.productName,
+                                      orderId: idOrder.toString(),
+                                      quantity: e.quantity,
+                                      productPrice: e.price.toDouble()))
+                                  .toList();
+                              var body = json.encode(orderDetails);
+                              var response = await http.post(
+                                  Uri.parse(postOrderDetaillUrl),
+                                  body: body);
+                              if (response.body == "1") {
+                                cartDAORead.clearCartByUid("bao");
+                                Navigator.pushNamed(
+                                    context, HomeScreen.routeName);
+                              } else {
+                                print("ERROR");
+                              }
                             } else {
-                              print("ERROR");
+                              showToast1(
+                                  context: context,
+                                  color: kPrimaryColor,
+                                  content: "Please add delivery address");
                             }
                           },
                         ),
@@ -317,6 +354,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   //         );
   //       });
   // }
+  void refreshData() {
+    setState(() {
+      _futureBillings = showBillings(
+          Provider.of<InitProvider>(context, listen: false)
+              .accountModel
+              .id
+              .toString());
+    });
+  }
+
+  FutureOr onGoBack(dynamic value) {
+    refreshData();
+    setState(() {});
+  }
 
   TextFormField buildNoteFormField() {
     return TextFormField(
@@ -350,8 +401,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   FutureBuilder<List<BillingModel>> selectDeliveryAddress(
       BuildContext context) {
     return FutureBuilder<List<BillingModel>>(
-      future: GetInforAccount().getBilling(
-          idAccount: context.watch<InitProvider>().accountModel.id.toString()),
+      future: _futureBillings,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(
@@ -409,6 +459,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            IconButton(
+              constraints: const BoxConstraints(),
+              padding: EdgeInsets.zero,
+              icon: const Icon(Icons.cancel_outlined),
+              iconSize: getProportionateScreenWidth(15),
+              color: Colors.red,
+              onPressed:
+                  _isShown == true ? () => _delete(context, model) : null,
+            ),
             SizedBox(
               width: SizeConfig.screenWidth * 0.7,
               child: Align(
@@ -419,7 +478,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     Align(
                       alignment: Alignment.topLeft,
                       child: Text(
-                          "${model.billingName} _ ${model.billingPhone}",
+                          "${model.billingName} - ${model.billingPhone}",
                           style: const TextStyle(
                               color: Colors.black,
                               fontWeight: FontWeight.bold)),
@@ -436,15 +495,54 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   shape: BoxShape.circle, color: kPrimaryColor),
               width: getProportionateScreenWidth(15),
               height: getProportionateScreenWidth(15),
-              child: Icon(
-                addressSelected == index ? Icons.check : Icons.circle,
-                size: getProportionateScreenWidth(15),
-                color: Colors.white,
-              ),
+              child: Row(children: [
+                Icon(
+                  addressSelected == index ? Icons.check : Icons.circle,
+                  size: getProportionateScreenWidth(15),
+                  color: Colors.white,
+                ),
+              ]),
             )
           ],
         ),
       ),
     );
+  }
+
+  void _delete(BuildContext context, BillingModel billingModel) {
+    showDialog(
+        context: context,
+        builder: (BuildContext ctx) {
+          return AlertDialog(
+            title: const Text('Please Confirm'),
+            content: const Text('Do you want to delete this address ?'),
+            actions: [
+              // The "Yes" button
+              TextButton(
+                  onPressed: () async {
+                    int a = await DeleteBilling()
+                        .deleteBilling(idBilling: billingModel.id);
+                    // Remove the box
+                    setState(() {
+                      _futureBillings = showBillings(
+                          Provider.of<InitProvider>(context, listen: false)
+                              .accountModel
+                              .id
+                              .toString());
+                    });
+
+                    // Close the dialog
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Yes')),
+              TextButton(
+                  onPressed: () {
+                    // Close the dialog
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('No'))
+            ],
+          );
+        });
   }
 }

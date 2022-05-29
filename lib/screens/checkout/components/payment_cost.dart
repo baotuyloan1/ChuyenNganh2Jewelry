@@ -22,7 +22,9 @@ StreamBuilder PaymentCost(BuildContext context, double subTotal) {
                   10 /
                   100
               : 0;
+          deliveryCoast = double.parse((deliveryCoast).toStringAsFixed(2));
           double total = deliveryCoast + subTotal;
+          total = double.parse((total).toStringAsFixed(2));
           return Padding(
             padding: EdgeInsets.symmetric(
                 horizontal: getProportionateScreenWidth(20)),

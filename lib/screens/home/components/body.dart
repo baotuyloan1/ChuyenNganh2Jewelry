@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:furniture_app/screens/home/components/recommender_products.dart';
 
 import 'package:furniture_app/size_config.dart';
 import 'discount_banner.dart';
@@ -38,7 +39,7 @@ class Body extends StatelessWidget {
             SizedBox(
               height: getProportionateScreenWidth(30),
             ),
-            // const RecommenderProducts(),
+            const RecommenderProducts(),
           ],
         ),
       ),

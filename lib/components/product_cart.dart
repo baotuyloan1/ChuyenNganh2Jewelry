@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:furniture_app/config.dart';
 import 'package:furniture_app/models/product_model.dart';
 import '../constants.dart';
@@ -21,11 +21,13 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double discountPrice = 0;
-    if (product.discountModel.discountPercent! > 0) {
+    double discountPrice = 0.00;
+    if (product.discountModel.discountPercent! > 0 &&
+        product.discountModel.discountPercent! <= 100) {
       discountPrice = (100 - product.discountModel.discountPercent!) /
           100 *
-          product.productPrice!;
+          double.parse(product.productPrice!);
+      discountPrice = double.parse((discountPrice).toStringAsFixed(2));
     }
     return Padding(
       padding: EdgeInsets.only(left: getProportionateScreenWidth(20)),
@@ -58,26 +60,56 @@ class ProductCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   if (discountPrice == 0)
-                    Text(
-                      "\$${product.productPrice}",
-                      style: TextStyle(
-                          fontSize: getProportionateScreenWidth(18),
-                          fontWeight: FontWeight.w600,
-                          color: kPrimaryColor),
+                    Column(
+                      children: [
+                        Text(
+                          "\$${product.productPrice}",
+                          style: TextStyle(
+                              fontSize: getProportionateScreenWidth(14),
+                              fontWeight: FontWeight.w600,
+                              color: kPrimaryColor),
+                        ),
+                        Row(
+                          children: [
+                            Text("",
+                                style: TextStyle(
+                                    decoration: TextDecoration.lineThrough,
+                                    fontStyle: FontStyle.italic,
+                                    fontSize: getProportionateScreenWidth(14),
+                                    color: kSecondaryColor)),
+                            Text("",
+                                style: TextStyle(
+                                    fontSize: getProportionateScreenWidth(14),
+                                    fontStyle: FontStyle.italic,
+                                    color: kSecondaryColor)),
+                          ],
+                        ),
+                      ],
                     )
                   else
-                    Row(
+                    Column(
                       children: [
-                        Text("\$${product.productPrice}",
-                            style: TextStyle(
-                                fontSize: getProportionateScreenWidth(18),
-                                fontWeight: FontWeight.w600,
-                                color: kPrimaryColor)),
                         Text("\$$discountPrice",
                             style: TextStyle(
-                                fontSize: getProportionateScreenWidth(18),
+                                fontSize: getProportionateScreenWidth(14),
                                 fontWeight: FontWeight.w600,
                                 color: kPrimaryColor)),
+                        Row(
+                          children: [
+                            Text("\$${product.productPrice}",
+                                style: TextStyle(
+                                    decoration: TextDecoration.lineThrough,
+                                    fontStyle: FontStyle.italic,
+                                    fontSize: getProportionateScreenWidth(14),
+                                    color: kSecondaryColor)),
+                            Text(
+                                " (-${product.discountModel.discountPercent}%)",
+                                style: TextStyle(
+                                    fontSize: getProportionateScreenWidth(14),
+                                    fontStyle: FontStyle.italic,
+                                    color: kSecondaryColor)),
+                          ],
+                        ),
                       ],
                     ),
                   InkWell(
