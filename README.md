@@ -1,6 +1,6 @@
 # furniture_app
 
-Sử dụng thuật toán để đưa ra các sản phẩm recommender
+Sử dụng thuật toán để đưa ra các sản phẩm recommender 
 
 ## Getting Started
 
