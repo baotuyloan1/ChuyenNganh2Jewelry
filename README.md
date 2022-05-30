@@ -1,6 +1,6 @@
 # furniture_app
 
-A new Flutter project.
+Sử dụng thuật toán để đưa ra các sản phẩm recommender
 
 ## Getting Started
 
