@@ -1,5 +1,5 @@
-// const domain = "http://baonguyenduc.com";
-const domain = "http://192.168.1.100";
+const domain = "http://baonguyenduc.com/jewelry";
+// const domain = "http://192.168.1.100";
 // https://furnitureshop2021.000webhostapp.com/API/getnewproduct.php
 // const domain = "https://furnitureshop2021.000webhostapp.com";
 const baseUrlApi = domain + "/API/";
